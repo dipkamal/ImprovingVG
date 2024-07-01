@@ -1,4 +1,4 @@
-# On the connection between model robustness and saliency map interpretability
+# Improving deep learning interpretability by feature map smoothing
 
 Repository for the paper "Improving deep learning interpretability by feature map smoothing," submitted at IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) 2025.
 
