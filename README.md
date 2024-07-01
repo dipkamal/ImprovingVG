@@ -1,6 +1,6 @@
 # On the connection between model robustness and saliency map interpretability
 
-Repository for the paper "On the connection between model robustness and saliency map interpretability," submitted at The 18th European Conference on Computer Vision ECCV 2024.
+Repository for the paper "Improving deep learning interpretability by feature map smoothing," submitted at IEEE/CVF Winter Conference on Applications of Computer Vision (WACV) 2025.
 
 This paper provides our implementation of building several robust models for improving the quality of saliency maps using Vanilla Gradient method. You will need to download ImageNette dataset from [here](https://github.com/fastai/imagenette). 
 
