@@ -1,4 +1,4 @@
-# Improving deep learning interpretability by feature map smoothing
+# Towards improving saliency map interpretability using feature map smoothing
 
 Repository for the paper "Improving deep learning interpretability by feature map smoothing," submitted at The Thirteenth International Conference on Learning Representations (ICLR) 2025.
 
