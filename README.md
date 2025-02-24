@@ -1,6 +1,6 @@
 # Towards improving saliency map interpretability using feature map smoothing
 
-Repository for the paper "Improving deep learning interpretability by feature map smoothing," submitted at The Thirteenth International Conference on Learning Representations (ICLR) 2025.
+Repository for the paper "Improving deep learning interpretability by feature map smoothing," submitted on Transactions on Machine Learning Research (TMLR).
 
 This paper provides our implementation of building several robust models for improving the quality of saliency maps using Vanilla Gradient method. You will need to download ImageNette dataset from [here](https://github.com/fastai/imagenette). 
 
