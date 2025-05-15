@@ -15,87 +15,9 @@ import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 import kornia
 from skimage.metrics import structural_similarity as ssim
+import pandas as pd 
 
 
-def filter_and_compute_faithfulnesscorrelation(model, test_loader, device):
-
-    pixel = quantus.FaithfulnessCorrelation(
-    nr_runs=100,  
-    subset_size=224,  
-    perturb_baseline="black",
-    perturb_func=quantus.perturb_func.baseline_replacement_by_indices,
-    similarity_func=quantus.similarity_func.correlation_pearson,  
-    abs=False,  
-    return_aggregate=False,
-    disable_warnings=True,
-)
-
-    score_faithfulness = []
-
-    for i, (x_batch, y_batch) in enumerate(test_loader):
-        x_batch, y_batch = x_batch.to(device), y_batch.to(device)
-        #print(len(x_batch))
-        outputs = model(x_batch)
-        predictions = torch.argmax(outputs, dim=1)
-        correct_mask = predictions == y_batch
-        #print(correct_mask)
-        x_batch = x_batch[correct_mask]
-        y_batch = y_batch[correct_mask]
-        #print(len(x_batch))
-        x_batch, y_batch = x_batch.cpu().numpy(), y_batch.cpu().numpy()
-        scores = pixel(
-                model= model,
-                x_batch=x_batch,
-                y_batch=y_batch,
-                a_batch=None,
-                s_batch=None,
-                device=device,
-                explain_func= quantus.explain,
-                explain_func_kwargs = {"method": "Saliency", "softmax": False})
-        score_faithfulness.extend(scores)
-        if len(score_faithfulness) > 1000:
-            break
-    return np.nanmean(score_faithfulness)
-
-
-def filter_and_compute_faithfulness_estimate(model, test_loader, device):
-
-    pixel = quantus.FaithfulnessEstimate(
-    perturb_func=quantus.perturb_func.baseline_replacement_by_indices,
-    similarity_func=quantus.similarity_func.correlation_pearson,
-    features_in_step=224,
-    perturb_baseline="black",
-)
-
-    score_faithfulness = []
-
-    for i, (x_batch, y_batch) in enumerate(test_loader):
-        x_batch, y_batch = x_batch.to(device), y_batch.to(device)
-        #print(len(x_batch))
-        outputs = model(x_batch)
-        predictions = torch.argmax(outputs, dim=1)
-        correct_mask = predictions == y_batch
-        #print(correct_mask)
-        x_batch = x_batch[correct_mask]
-        y_batch = y_batch[correct_mask]
-        #print(len(x_batch))
-        x_batch, y_batch = x_batch.cpu().numpy(), y_batch.cpu().numpy()
-        scores = pixel(
-                model= model,
-                x_batch=x_batch,
-                y_batch=y_batch,
-                a_batch=None,
-                s_batch=None,
-                device=device,
-                explain_func= quantus.explain,
-                explain_func_kwargs = {"method": "Saliency", "softmax": False})
-        score_faithfulness.extend(scores)
-        if len(score_faithfulness) > 1000:
-            break
-    return np.nanmean(score_faithfulness), np.nanstd(score_faithfulness)
-
-
-# In[3]:
 
 
 def compute_accuracy_batch(model, test_loader, device):
@@ -213,40 +135,6 @@ def filter_and_compute_output_stability(model, test_loader, device):
     return math.log(np.nanmean(score2), 10)
 
 
-def filter_and_compute_representation_stability(model, test_loader, device):
-    
-    metrics = quantus.RelativeRepresentationStability(
-        nr_samples = 5,
-         return_aggregate=False,
-        disable_warnings=True,
-    )
-    
-    score = []
-    
-    for i, (x_batch, y_batch) in enumerate(test_loader):
-        x_batch, y_batch = x_batch.to(device), y_batch.to(device)
-        outputs = model(x_batch)
-        predictions = torch.argmax(outputs, dim=1)
-        correct_mask = predictions == y_batch
-        x_batch = x_batch[correct_mask]
-        y_batch = y_batch[correct_mask]
-        x_batch, y_batch = x_batch.cpu().numpy(), y_batch.cpu().numpy()
-        scores = metrics(
-                model= model,
-                x_batch=x_batch,
-                y_batch=y_batch,
-                a_batch=None,
-                s_batch=None,
-                device=device,
-                explain_func= quantus.explain, 
-                explain_func_kwargs = {"method": "Saliency", "softmax": False})
-        scores2 = np.nanmean(scores)
-        score.append(scores2)
-        if len(score) > 1000:
-            break 
-    score2=score
-    return math.log(np.nanmean(score2), 10)
-
 def filter_and_compute_road(model, test_loader, device):
 
     faithfulness = quantus.ROAD(
@@ -350,3 +238,31 @@ def filter_and_compute_SSIM(model, test_loader, device):
                 if len(scores)>1000:
                     break
         print('SSIM for noise {} is {}.'.format(noise, sum(scores)/len(scores)))
+
+
+
+def compute_road_aopc_morf(models):
+    """
+    Computes the AOPC (Area Over Perturbation Curve) for the ROAD scores. Input is a dictionary called models 
+    where keys are model names and values are dictionaries with percentage of features perturbed as keys and corresponding model accuracy 
+    as values. The function returns a dataframe containing sorted AOPC MoRF scores for each model.
+    """
+    aopc_scores = {}
+    
+    for model_name, model_performance in models.items():
+        percent_perturbed = np.array(list(model_performance.keys()))  # Feature perturbation percentages
+        accuracy = np.array(list(model_performance.values()))  # Model accuracy at each perturbation step
+        
+        initial_acc = accuracy[0]  # Accuracy before any perturbation
+        aopc_values = initial_acc - accuracy  # Compute accuracy difference at each step
+        
+        # Compute AOPC using summation method
+        aopc_morf = np.sum(aopc_values) / (len(percent_perturbed) + 1)
+        
+        aopc_scores[model_name] = aopc_morf
+    
+    # Convert to DataFrame and sort by descending order
+    aopc_df = pd.DataFrame.from_dict(aopc_scores, orient='index', columns=['AOPC MoRF Score'])
+    aopc_df = aopc_df.sort_values(by='AOPC MoRF Score', ascending=False)
+    
+    return aopc_df
