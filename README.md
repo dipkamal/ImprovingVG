@@ -1,4 +1,4 @@
-# Towards improving saliency map interpretability using feature map smoothing
+# Towards stable and sparse saliency maps via feature map smoothing
 
 Repository for the paper "Towards stable and sparse saliency maps via feature map smoothing," submitted on Transactions on Machine Learning Research (TMLR).
 
