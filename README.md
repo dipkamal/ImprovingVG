@@ -1,6 +1,6 @@
 # Towards improving saliency map interpretability using feature map smoothing
 
-Repository for the paper "Towards improving deep learning interpretability by feature map smoothing," submitted on Transactions on Machine Learning Research (TMLR).
+Repository for the paper "Towards stable and sparse saliency maps via feature map smoothing," submitted on Transactions on Machine Learning Research (TMLR).
 
 In this work, we examine how adversarial training, known to enhance model robustness, affects explanation quality, and propose a lightweight feature-map smoothing mechanism that can be integrated during adversarial training. Through empirical studies on FMNIST, CIFAR-10, and ImageNette, we find that local smoothing filters (e.g., mean, median) improve the stability and human-perceived clarity of saliency maps, while retaining the sparsity benefits of adversarial training.
 
